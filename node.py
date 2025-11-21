@@ -14,7 +14,7 @@ def planner_node(state: AgentState):
     text = getattr(last, "content", str(last)) if last else ""
     sys = "你是一个规划助手。仅返回 JSON 对象，键为 steps，值为不超过 9 条的字符串数组。不要输出除 JSON 外的任何内容。"
     user = "根据目标生成可执行计划。目标：" + text
-    response = llm.invoke(
+    response = llm.with_structured_output(
         [SystemMessage(content=sys), HumanMessage(content=user)])
     content = getattr(response, "content", "")
     steps = []
