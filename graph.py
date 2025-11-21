@@ -1,20 +1,31 @@
 from langgraph.graph import StateGraph, START, END
 from typing import Literal
 from state import AgentState
-from node import agent_node, tool_node
+from node import planner_node, agent_node, tool_node, post_exec_node
 
 # 这个函数用来决定下一步去哪里
 
 
-def should_continue(state: AgentState) -> Literal["tools", END]:
+def after_planner(state: AgentState) -> Literal["agent", END]:
+    plan = state.get("plan", [])
+    if len(plan) == 0:
+        return END
+    return "agent"
+
+
+def agent_next(state: AgentState) -> Literal["tools", "post"]:
     messages = state['messages']
     last_message = messages[-1]
+    if getattr(last_message, "tool_calls", None):
+        return "tools"
+    return "post"
 
-    # 如果 LLM 的回复里包含 tool_calls，说明它想调工具
-    if last_message.tool_calls:
-        return "tools"  # 路由到名为 'tools' 的节点
 
-    # 否则，说明任务结束
+def loop_or_end(state: AgentState) -> Literal["agent", END]:
+    idx = state.get("step_index", 0)
+    plan = state.get("plan", [])
+    if idx < len(plan):
+        return "agent"
     return END
 
 
@@ -22,21 +33,22 @@ def should_continue(state: AgentState) -> Literal["tools", END]:
 workflow = StateGraph(AgentState)
 
 # 添加节点
+workflow.add_node("planner", planner_node)
 workflow.add_node("agent", agent_node)
 workflow.add_node("tools", tool_node)
+workflow.add_node("post", post_exec_node)
 
 # 添加边
 # 1.以此开始
-workflow.add_edge(START, "agent")
+workflow.add_edge(START, "planner")
 
 # 2.agent 之后的条件跳转
-workflow.add_conditional_edges(
-    "agent",           # 来源节点
-    should_continue,   # 判断函数
-)
+workflow.add_conditional_edges("planner", after_planner)
+workflow.add_conditional_edges("agent", agent_next)
 
 # 3.工具执行完，必须回到 agent 再次思考（形成循环！）
 workflow.add_edge("tools", "agent")
+workflow.add_conditional_edges("post", loop_or_end)
 
 # 编译图
 app = workflow.compile()
