@@ -10,10 +10,11 @@ def planner_node(state: AgentState):
     messages = state['messages']
     last = messages[-1]
     text = getattr(last, "content", str(last))
-    prompt = "请根据目标生成可执行计划，每行一个步骤。\n目标：" + text
+    prompt = "请根据目标生成可执行计划，每行一个步骤,不要超过9个步骤。\n目标：" + text
     response = llm.invoke(prompt)
     plan_text = getattr(response, "content", "")
-    steps = [s.strip(" 0123456789.-) ") for s in plan_text.splitlines() if s.strip()]
+    steps = [s.strip(" 0123456789.-) ")
+             for s in plan_text.splitlines() if s.strip()]
     return {"messages": [response], "plan": steps, "step_index": 0, "step_outputs": []}
 
 
@@ -22,9 +23,11 @@ def agent_node(state: AgentState):
     plan = state.get("plan", [])
     idx = state.get("step_index", 0)
     prev = state.get("step_outputs", [])
-    goal = getattr(messages[0], "content", str(messages[0])) if messages else ""
+    goal = getattr(messages[0], "content", str(
+        messages[0])) if messages else ""
     step = plan[idx] if idx < len(plan) else ""
-    prompt = "现在执行该步骤：" + step + "\n已完成结果：" + "; ".join(prev) + "\n用户目标：" + goal + "\n需要时调用工具完成。"
+    prompt = "现在执行该步骤：" + step + "\n已完成结果：" + \
+        "; ".join(prev) + "\n用户目标：" + goal + "\n需要时调用工具完成。"
     response = llm_with_tools.invoke(prompt)
     return {"messages": [response]}
 
