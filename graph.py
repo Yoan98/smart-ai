@@ -4,16 +4,19 @@ from state import AgentState
 from node import agent_node, tool_node
 
 # 这个函数用来决定下一步去哪里
-def should_continue(state: AgentState) -> Literal["tools", "__end__"]:
+
+
+def should_continue(state: AgentState) -> Literal["tools", END]:
     messages = state['messages']
     last_message = messages[-1]
 
     # 如果 LLM 的回复里包含 tool_calls，说明它想调工具
     if last_message.tool_calls:
-        return "tools" # 路由到名为 'tools' 的节点
+        return "tools"  # 路由到名为 'tools' 的节点
 
     # 否则，说明任务结束
-    return "__end__"
+    return END
+
 
 # 初始化图
 workflow = StateGraph(AgentState)
