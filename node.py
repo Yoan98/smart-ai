@@ -22,7 +22,7 @@ def planner_node(state: AgentState):
     user = "根据目标生成可执行计划。目标：" + text
     structured = llm.with_structured_output(PlanOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
-    steps = [str(s) for s in getattr(result, "steps", [])][:9]
+    steps = [str(s) for s in getattr(result, "steps", [])]
     ai_content = json.dumps({"steps": steps}, ensure_ascii=False)
     return { "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
 
