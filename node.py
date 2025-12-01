@@ -2,28 +2,29 @@ from langgraph.prebuilt import ToolNode
 from state import AgentState
 from llm import llm, llm_with_tools
 from tool import tools
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.pydantic_v1 import BaseModel, Field
+from typing import List
 import json
 
 # --- 节点 1: Agent (思考与决策) ---
+
+
+class PlanOut(BaseModel):
+    steps: List[str] = Field(description="步骤数组，最多 9 条")
 
 
 def planner_node(state: AgentState):
     messages = state['messages']
     last = messages[-1] if messages else None
     text = getattr(last, "content", str(last)) if last else ""
-    sys = "你是一个规划助手。仅返回 JSON 对象，键为 steps，值为不超过 9 条的字符串数组。不要输出除 JSON 外的任何内容。"
+    sys = "你是一个规划助手。仅返回 JSON 对象，键为 steps，值为不超过 9 条的字符串数组。不要输出除 JSON 外的任何内容。例子: {\"steps\": [\"步骤1\", \"步骤2\", \"步骤3\"]}"
     user = "根据目标生成可执行计划。目标：" + text
-    response = llm.with_structured_output(
-        [SystemMessage(content=sys), HumanMessage(content=user)])
-    content = getattr(response, "content", "")
-    steps = []
-    try:
-        data = json.loads(content)
-        steps = [str(s) for s in data.get("steps", [])]
-    except Exception:
-        steps = [s for s in content.splitlines() if s]
-    return {"planner_messages": [response], "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
+    structured = llm.with_structured_output(PlanOut)
+    result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
+    steps = [str(s) for s in getattr(result, "steps", [])]
+    ai_content = json.dumps({"steps": steps}, ensure_ascii=False)
+    return {"planner_messages": [AIMessage(content=ai_content)], "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
 
 
 def agent_node(state: AgentState):
