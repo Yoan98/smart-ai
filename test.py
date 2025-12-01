@@ -31,6 +31,7 @@ def run(goal: str, stream: bool):
     from langchain_core.messages import HumanMessage
     inputs = {"messages": [HumanMessage(content=goal)]}
     if stream:
+        print('stream模式')
         for state in app.stream(inputs, stream_mode="values"):
             plan = state.get("plan", [])
             idx = state.get("step_index", 0)
@@ -52,7 +53,7 @@ def main():
     require_env(["LLM_MODEL", "LLM_BASE_URL", "LLM_API_KEY"])
     parser = argparse.ArgumentParser()
     parser.add_argument("--goal", type=str, default="帮我规划一次两天的城市短途旅行")
-    parser.add_argument("--stream", action="store_true")
+    parser.add_argument("--stream", action="store_true",default=True)
     args = parser.parse_args()
     run(args.goal, args.stream)
 
