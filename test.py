@@ -36,10 +36,15 @@ def run(goal: str, stream: bool):
             plan = state.get("plan", [])
             idx = state.get("step_index", 0)
             outs = state.get("step_outputs", [])
+            goal = state.get("goal", "")
+            messages = state.get("messages", [])
             if plan:
-                print("计划:", "; ".join(plan))
+                print("计划:", plan)
             if outs:
                 print("进度:", f"{idx}/{len(plan)}", "; ".join(outs))
+            if messages:
+                print("消息:", messages)
+
     else:
         final = app.invoke(inputs)
         plan = final.get("plan", [])
