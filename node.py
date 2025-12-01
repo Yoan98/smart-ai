@@ -24,7 +24,7 @@ def planner_node(state: AgentState):
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     steps = [str(s) for s in getattr(result, "steps", [])][:9]
     ai_content = json.dumps({"steps": steps}, ensure_ascii=False)
-    return {"planner_messages": [AIMessage(content=ai_content)], "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
+    return { "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
 
 
 def agent_node(state: AgentState):

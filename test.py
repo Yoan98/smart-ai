@@ -32,19 +32,8 @@ def run(goal: str, stream: bool):
     inputs = {"messages": [HumanMessage(content=goal)]}
     if stream:
         print('stream模式')
-        for state in app.stream(inputs, stream_mode="values"):
-            plan = state.get("plan", [])
-            idx = state.get("step_index", 0)
-            outs = state.get("step_outputs", [])
-            goal = state.get("goal", "")
-            messages = state.get("messages", [])
-            if plan:
-                print("计划:", plan)
-            if outs:
-                print("进度:", f"{idx}/{len(plan)}", "; ".join(outs))
-            if messages:
-                print("消息:", messages)
-
+        for event in app.stream(inputs, stream_mode="updates"):
+             print(event)
     else:
         final = app.invoke(inputs)
         plan = final.get("plan", [])
