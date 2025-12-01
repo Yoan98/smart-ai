@@ -39,13 +39,12 @@ def run(goal: str, stream: bool):
                 print("计划:", "; ".join(plan))
             if outs:
                 print("进度:", f"{idx}/{len(plan)}", "; ".join(outs))
-        final = app.invoke(inputs)
     else:
         final = app.invoke(inputs)
-    plan = final.get("plan", [])
-    outs = final.get("step_outputs", [])
-    print("最终计划:", plan)
-    print("最终结果:", outs)
+        plan = final.get("plan", [])
+        outs = final.get("step_outputs", [])
+        print("最终计划:", plan)
+        print("最终结果:", outs)
 
 
 def main():
