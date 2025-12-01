@@ -34,6 +34,7 @@ def run(goal: str, stream: bool):
         print('stream模式')
         for event in app.stream(inputs, stream_mode="updates"):
              print(event)
+             print('--------')
     else:
         final = app.invoke(inputs)
         plan = final.get("plan", [])
