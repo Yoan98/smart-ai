@@ -3,7 +3,7 @@ from state import AgentState
 from llm import llm, llm_with_tools
 from tool import tools
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
-from langchain_core.pydantic_v1 import BaseModel, Field
+from pydantic import BaseModel, Field
 from typing import List
 import json
 
@@ -22,7 +22,7 @@ def planner_node(state: AgentState):
     user = "根据目标生成可执行计划。目标：" + text
     structured = llm.with_structured_output(PlanOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
-    steps = [str(s) for s in getattr(result, "steps", [])]
+    steps = [str(s) for s in getattr(result, "steps", [])][:9]
     ai_content = json.dumps({"steps": steps}, ensure_ascii=False)
     return {"planner_messages": [AIMessage(content=ai_content)], "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
 

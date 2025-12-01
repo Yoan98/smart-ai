@@ -44,8 +44,8 @@ def run(goal: str, stream: bool):
         final = app.invoke(inputs)
     plan = final.get("plan", [])
     outs = final.get("step_outputs", [])
-    print("最终计划:", "; ".join(plan))
-    print("最终结果:", "; ".join(outs))
+    print("最终计划:", plan)
+    print("最终结果:", outs)
 
 
 def main():
