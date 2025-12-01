@@ -9,6 +9,7 @@ class AgentState(TypedDict):
     # 意味着新消息会追加到列表中，而不是覆盖旧列表
     messages: Annotated[list, add_messages]
     goal: str
+    intent: dict
     plan: List[str]
     step_index: int
     step_outputs: List[str]

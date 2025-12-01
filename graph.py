@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, START, END
 from typing import Literal
 from state import AgentState
-from node import planner_node, agent_node, tool_node, post_exec_node
+from node import planner_node, agent_node, tool_node, post_exec_node, intent_node
 
 # 这个函数用来决定下一步去哪里
 
@@ -33,6 +33,7 @@ def loop_or_end(state: AgentState) -> Literal["agent", END]:
 workflow = StateGraph(AgentState)
 
 # 添加节点
+workflow.add_node("intent", intent_node)
 workflow.add_node("planner", planner_node)
 workflow.add_node("agent", agent_node)
 workflow.add_node("tools", tool_node)
@@ -40,7 +41,8 @@ workflow.add_node("post", post_exec_node)
 
 # 添加边
 # 1.以此开始
-workflow.add_edge(START, "planner")
+workflow.add_edge(START, "intent")
+workflow.add_edge("intent", "planner")
 
 # 2.agent 之后的条件跳转
 workflow.add_conditional_edges("planner", after_planner)
