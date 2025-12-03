@@ -1,6 +1,9 @@
 import os
 import sys
 import argparse
+from IPython.display import Image, display
+from graph import app
+from langchain_core.messages import HumanMessage
 
 
 def load_env(path: str):
@@ -27,8 +30,6 @@ def require_env(keys):
 
 
 def run(goal: str, stream: bool):
-    from graph import app
-    from langchain_core.messages import HumanMessage
     inputs = {"messages": [HumanMessage(content=goal)]}
     if stream:
         print('stream模式')
