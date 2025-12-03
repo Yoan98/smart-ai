@@ -24,7 +24,7 @@ def run(goal: str, stream: bool, graph: bool):
             print(event)
             print('--------')
     elif graph:
-        app.draw("workflow.png")
+        print(app.get_graph().print_ascii())
     else:
         final = app.invoke(inputs)
         plan = final.get("plan", [])
