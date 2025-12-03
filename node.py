@@ -2,7 +2,7 @@ from langgraph.prebuilt import ToolNode
 from state import AgentState
 from llm import llm, llm_with_tools
 from tool import tools
-from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel, Field
 from typing import List
 import json
@@ -69,8 +69,7 @@ def planner_node(state: AgentState):
     structured = llm.with_structured_output(PlanOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     steps = [str(s) for s in getattr(result, "steps", [])]
-    ai_content = json.dumps({"steps": steps}, ensure_ascii=False)
-    return { "goal": text, "plan": steps, "step_index": 0, "step_outputs": []}
+    return {"goal": goal, "plan": steps, "step_index": 0, "step_outputs": []}
 
 
 def agent_node(state: AgentState):
