@@ -51,6 +51,10 @@ def plan_node(state: AgentState):
 
 def executor_node(state: AgentState):
     # 初始化当前任务草稿
+    print('+++++++++++++++')
+    print('total tasks:', len(state.get("tasks", [])))
+    print('current index:', state.get("current_index", 0))
+    print('+++++++++++++++')
     return {"current_task_draft": {}}
 
 

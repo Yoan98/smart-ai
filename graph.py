@@ -2,11 +2,11 @@ from langgraph.graph import StateGraph, START, END
 from typing import Literal
 from state import AgentState
 from node import (
-    plan_node, 
-    executor_node, 
-    base_field_gen_node, 
-    single_report_prompt_gen_node, 
-    general_report_prompt_gen_node, 
+    plan_node,
+    executor_node,
+    base_field_gen_node,
+    single_report_prompt_gen_node,
+    general_report_prompt_gen_node,
     field_summary_node
 )
 
@@ -23,6 +23,8 @@ def should_loop(state: AgentState) -> Literal["executor", END]:
     outline = state.get("outline", [])
     if idx < len(outline):
         return "executor"
+    print('END+++++++++++++++END')
+    print('END+++++++++++++++END')
     return END
 
 
