@@ -2,6 +2,7 @@
 import os
 import sys
 from utils import load_env
+import json
 
 
 def require_env(keys):
@@ -30,7 +31,8 @@ def run():
     if stream:
         print('stream模式')
         for event in app.stream(inputs, stream_mode="updates"):
-            print(event)
+            # print(event)
+            print(json.dumps(event, ensure_ascii=False, indent=2))
             print('--------')
     elif graph:
         print(app.get_graph().print_ascii())
