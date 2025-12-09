@@ -27,12 +27,14 @@ def plan_node(state: AgentState):
     user_request = state.get("user_request", "")
     knowledge = state.get("knowledge", "")
     sys = PLANNER_SYSTEM_PROMPT
-    user = (
-        "课程标题：" + course_title + "\n"
-        + "课程描述：" + course_desc + "\n"
-        + "用户需求：" + (user_request or "无") + "\n"
-        + "知识库：" + knowledge
-    )
+    user = f"""
+    课程标题：{course_title}
+    课程描述：{course_desc}
+    用户需求：{user_request or "无"}
+    知识库：{knowledge}
+    
+    请根据以上信息规划教学大纲。
+    """
     structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     items = getattr(result, "outline", [])
@@ -43,15 +45,23 @@ def plan_node(state: AgentState):
 def executor_node(state: AgentState):
     outline = state.get("outline", [])
     idx = state.get("current_index", 0)
+    course_title = state.get("course_title", "")
+    course_desc = state.get("course_desc", "")
+
     if idx >= len(outline):
         return {}
     current = outline[idx]
     sys = EXECUTOR_SYSTEM_PROMPT
-    user = (
-        "任务标题：" + str(current.get("title", "")) + "\n"
-        + "任务详细要求：" + str(current.get("requirement", "")) + "\n"
-        + "请生成一条符合系统约束的教学任务条目，并仅以严格 JSON 对象输出。"
-    )
+    user = f"""
+    课程标题：{course_title}
+    课程描述：{course_desc}
+
+    当前任务标题：{current.get("title", "")}
+    当前任务详细要求：
+    {current.get("requirement", "")}
+
+    请生成一条符合系统约束的教学任务条目，并仅以严格 JSON 对象输出。
+    """
     structured = llm.with_structured_output(TaskItemModel)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     item = {
