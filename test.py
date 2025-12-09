@@ -12,10 +12,16 @@ def require_env(keys):
         sys.exit(1)
 
 
-def run(goal: str, stream: bool, graph: bool):
+def run():
     from graph import app
 
-    inputs = {"user_request": goal, "knowledge": "这里是知识库内容..."}
+    stream = True
+    graph = False
+
+    course_title = "解锁最短路径的秘密"
+    course_desc = "教材内容设计遵循“生活情境—实践探究—思维提升—应用延伸”的逻辑主线：先以地图（3行3列网格）为具象载体，让学生；再引导学生转变思路，通过规划算法方法计算从起点到所有节点的最短用时，接着找出最短用时的路径；最后拓展导航、物流、电力网络等生活应用场景，实现“从具象问题到抽象算法，再回归生活应用”的知识建构。"
+
+    inputs = {"user_request": course_title, "knowledge": "这里是知识库内容..."}
     if stream:
         print('stream模式')
         for event in app.stream(inputs, stream_mode="updates"):
@@ -34,7 +40,7 @@ def run(goal: str, stream: bool, graph: bool):
 def main():
     load_env(os.path.join(os.getcwd(), ".env"))
     require_env(["LLM_MODEL", "LLM_BASE_URL", "LLM_API_KEY"])
-    run("帮我规划一次两天的城市短途旅行", False, True)
+    run()
 
 
 if __name__ == "__main__":
