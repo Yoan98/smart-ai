@@ -22,10 +22,17 @@ class TaskItemModel(BaseModel):
 
 
 def plan_node(state: AgentState):
+    course_title = state.get("course_title", "")
+    course_desc = state.get("course_desc", "")
     user_request = state.get("user_request", "")
     knowledge = state.get("knowledge", "")
     sys = PLANNER_SYSTEM_PROMPT
-    user = "用户需求：" + user_request + "\n知识库：" + knowledge
+    user = (
+        "课程标题：" + course_title + "\n"
+        + "课程描述：" + course_desc + "\n"
+        + "用户需求：" + (user_request or "无") + "\n"
+        + "知识库：" + knowledge
+    )
     structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     items = getattr(result, "outline", [])

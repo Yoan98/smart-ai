@@ -17,6 +17,8 @@ class OutlineItem(TypedDict):
 
 
 class AgentState(TypedDict):
+    course_title: str
+    course_desc: str
     user_request: str
     knowledge: str
     outline: List[OutlineItem]
