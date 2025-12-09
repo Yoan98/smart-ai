@@ -4,12 +4,16 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel
 from typing import List
 from prompts import (
-    PLANNER_SYSTEM_PROMPT, 
-    BASE_FIELD_GEN_PROMPT, 
-    SINGLE_REPORT_PROMPT_GEN_PROMPT, 
+    PLANNER_SYSTEM_PROMPT,
+    BASE_FIELD_GEN_PROMPT,
+    SINGLE_REPORT_PROMPT_GEN_PROMPT,
     GENERAL_REPORT_PROMPT_GEN_PROMPT
 )
-from state import OutlineItem
+
+
+class OutlineItem(BaseModel):
+    title: str
+    requirement: str
 
 
 class PlannerOut(BaseModel):
@@ -58,7 +62,7 @@ def base_field_gen_node(state: AgentState):
 
     if idx >= len(outline):
         return {}
-    
+
     current = outline[idx]
     sys = BASE_FIELD_GEN_PROMPT
     user = f"""
@@ -73,7 +77,7 @@ def base_field_gen_node(state: AgentState):
     """
     structured = llm.with_structured_output(BaseFieldModel)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
-    
+
     draft = state.get("current_task_draft", {})
     draft.update({
         "sort": int(getattr(result, "sort", idx + 1)),
@@ -90,7 +94,7 @@ def single_report_prompt_gen_node(state: AgentState):
     idx = state.get("current_index", 0)
     course_title = state.get("course_title", "")
     course_desc = state.get("course_desc", "")
-    
+
     if idx >= len(outline):
         return {}
 
@@ -120,10 +124,10 @@ def single_report_prompt_gen_node(state: AgentState):
     # 为了简单，假设 LLM 直接返回字符串。如果需要 strictly json，可以使用 structured output 包含一个 prompt 字段。
     # 但 prompt 中可能包含 json 结构，直接返回 string 可能更好。
     # 既然之前的 prompt 要求 "请只输出生成的 system prompt 内容"，我们就直接 invoke。
-    
+
     response = llm.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     prompt_content = response.content
-    
+
     draft.update({"single_report_prompt": prompt_content})
     return {"current_task_draft": draft}
 
@@ -139,7 +143,7 @@ def general_report_prompt_gen_node(state: AgentState):
 
     current = outline[idx]
     draft = state.get("current_task_draft", {})
-    
+
     sys = GENERAL_REPORT_PROMPT_GEN_PROMPT
     user = f"""
     课程标题：{course_title}
@@ -150,10 +154,10 @@ def general_report_prompt_gen_node(state: AgentState):
 
     请根据以上信息，生成班级汇总报告的 System Prompt。
     """
-    
+
     response = llm.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     prompt_content = response.content
-    
+
     draft.update({"general_report_prompt": prompt_content})
     return {"current_task_draft": draft}
 
@@ -162,7 +166,7 @@ def field_summary_node(state: AgentState):
     draft = state.get("current_task_draft", {})
     tasks = state.get("tasks", [])
     idx = state.get("current_index", 0)
-    
+
     # 确保 draft 包含所有必要字段
     item = {
         "sort": draft.get("sort", idx + 1),
@@ -173,5 +177,5 @@ def field_summary_node(state: AgentState):
         "single_report_prompt": draft.get("single_report_prompt", ""),
         "general_report_prompt": draft.get("general_report_prompt", ""),
     }
-    
+
     return {"tasks": tasks + [item], "current_index": idx + 1, "current_task_draft": {}}
