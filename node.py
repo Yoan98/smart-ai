@@ -3,7 +3,7 @@ from llm import llm
 from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel
 from typing import List
-from prompts import build_executor_system_prompt, EXECUTOR_FIELD_DESCRIPTIONS
+from prompts import PLANNER_SYSTEM_PROMPT, EXECUTOR_SYSTEM_PROMPT
 from state import OutlineItem
 
 
@@ -24,7 +24,7 @@ class TaskItemModel(BaseModel):
 def plan_node(state: AgentState):
     user_request = state.get("user_request", "")
     knowledge = state.get("knowledge", "")
-    sys = "你是教学任务规划助手。仅返回严格 JSON 对象，键为 outline，值为对象数组。每个对象包含字段：title(string)、desc(string)、requirement(string)。不得返回除该对象外的任何文本或代码块。"
+    sys = PLANNER_SYSTEM_PROMPT
     user = "用户需求：" + user_request + "\n知识库：" + knowledge
     structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
@@ -39,7 +39,7 @@ def executor_node(state: AgentState):
     if idx >= len(outline):
         return {}
     current = outline[idx]
-    sys = build_executor_system_prompt(EXECUTOR_FIELD_DESCRIPTIONS)
+    sys = EXECUTOR_SYSTEM_PROMPT
     user = (
         "任务标题：" + str(current.get("title", "")) + "\n"
         + "任务详细要求：" + str(current.get("requirement", "")) + "\n"
