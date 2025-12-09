@@ -24,3 +24,4 @@ class AgentState(TypedDict):
     outline: List[OutlineItem]
     current_index: int
     tasks: List[TaskItem]
+    current_task_draft: dict
