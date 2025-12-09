@@ -1,15 +1,20 @@
-from typing import Annotated, TypedDict, List
-from langgraph.graph.message import add_messages
+from typing import TypedDict, List
 
-# 这是整个图共享的数据结构
+
+class TaskItem(TypedDict):
+    sort: int
+    type: int
+    title: str
+    content: str
+    answer_r: str
+    single_report_prompt: str
+    general_report_prompt: str
 
 
 class AgentState(TypedDict):
-    # add_messages 是一个特殊的 reducer，
-    # 意味着新消息会追加到列表中，而不是覆盖旧列表
-    messages: Annotated[list, add_messages]
-    goal: str
-    intent: dict
-    plan: List[str]
-    step_index: int
-    step_outputs: List[str]
+    user_request: str
+    knowledge: str
+    outline: List[str]
+    current_index: int
+    requirement_desc: str
+    tasks: List[TaskItem]

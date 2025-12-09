@@ -1,8 +1,6 @@
 
 import os
 import sys
-from langchain_core.messages import HumanMessage
-
 from utils import load_env
 
 
@@ -17,7 +15,7 @@ def require_env(keys):
 def run(goal: str, stream: bool, graph: bool):
     from graph import app
 
-    inputs = {"messages": [HumanMessage(content=goal)]}
+    inputs = {"user_request": goal, "knowledge": "这里是知识库内容..."}
     if stream:
         print('stream模式')
         for event in app.stream(inputs, stream_mode="updates"):
@@ -27,10 +25,10 @@ def run(goal: str, stream: bool, graph: bool):
         print(app.get_graph().print_ascii())
     else:
         final = app.invoke(inputs)
-        plan = final.get("plan", [])
-        outs = final.get("step_outputs", [])
-        print("最终计划:", plan)
-        print("最终结果:", outs)
+        outline = final.get("outline", [])
+        tasks = final.get("tasks", [])
+        print("最终大纲:", outline)
+        print("任务数量:", len(tasks))
 
 
 def main():

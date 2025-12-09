@@ -1,100 +1,56 @@
-from langgraph.prebuilt import ToolNode
 from state import AgentState
-from llm import llm, llm_with_tools
-from tool import tools
+from llm import llm
 from langchain_core.messages import SystemMessage, HumanMessage
 from pydantic import BaseModel, Field
 from typing import List
-import json
-
-# --- 节点 1: Agent (思考与决策) ---
 
 
-class IntentOut(BaseModel):
-    objective: str = Field(description="用户目标的明确表达")
-    demands: List[str] = Field(description="潜在诉求列表")
-    constraints: List[str] = Field(description="约束条件列表")
-    preferences: List[str] = Field(description="偏好或倾向列表")
-    assumptions: List[str] = Field(description="为直接输出而作出的合理假设")
+class PlannerOut(BaseModel):
+    outline: List[str] = Field(description="")
+    requirements: str = Field(description="")
 
 
-class PlanOut(BaseModel):
-    steps: List[str] = Field(description="步骤数组")
+class TaskItemModel(BaseModel):
+    sort: int
+    type: int
+    title: str
+    content: str
+    answer_r: str
+    single_report_prompt: str
+    general_report_prompt: str
 
 
-def intent_node(state: AgentState):
-    messages = state['messages']
-    last = messages[-1] if messages else None
-    text = getattr(last, "content", str(last)) if last else ""
-    sys = (
-        "你是一个意图分析助手。根据用户目标进行诉求拆解、约束识别与偏好提取。"
-        "不得向用户提问。仅返回 JSON，对象需包含字段 objective, demands, constraints, preferences, assumptions。"
-        "所有字段使用中文，列表项不超过 5 条，内容简洁可执行。"
-    )
-    user = "分析目标：" + text
-    structured = llm.with_structured_output(IntentOut)
+def plan_node(state: AgentState):
+    user_request = state.get("user_request", "")
+    knowledge = state.get("knowledge", "")
+    sys = "你是教学任务规划助手。根据用户需求和知识，先输出一个 JSON：{\"outline\": [字符串...], \"requirements\": 详细要求字符串}。严格 JSON，且仅输出该对象。"
+    user = "用户需求：" + user_request + "\n知识库：" + knowledge
+    structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
-    objective = str(getattr(result, "objective", ""))
-    demands = [str(s) for s in getattr(result, "demands", [])]
-    constraints = [str(s) for s in getattr(result, "constraints", [])]
-    preferences = [str(s) for s in getattr(result, "preferences", [])]
-    assumptions = [str(s) for s in getattr(result, "assumptions", [])]
-    intent = {
-        "objective": objective,
-        "demands": demands,
-        "constraints": constraints,
-        "preferences": preferences,
-        "assumptions": assumptions,
+    outline = [str(s) for s in getattr(result, "outline", [])]
+    requirements = str(getattr(result, "requirements", ""))
+    return {"outline": outline, "requirement_desc": requirements, "current_index": 0, "tasks": []}
+
+
+def executor_node(state: AgentState):
+    outline = state.get("outline", [])
+    idx = state.get("current_index", 0)
+    if idx >= len(outline):
+        return {}
+    topic = outline[idx]
+    requirements = state.get("requirement_desc", "")
+    sys = "你是教学任务生成助手。只输出严格 JSON 对象，无额外文本或代码块。字段：sort(number)、type(number:1选择题/2填空题/3问答题)、title(string)、content(string,markdown)、answer_r(string)、single_report_prompt(string)、general_report_prompt(string)。"
+    user = "索引：" + str(idx + 1) + "\n主题：" + topic + "\n详细要求：" + requirements + "\n请生成一个符合要求的任务。"
+    structured = llm.with_structured_output(TaskItemModel)
+    result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
+    item = {
+        "sort": int(getattr(result, "sort", idx + 1)),
+        "type": int(getattr(result, "type", 1)),
+        "title": str(getattr(result, "title", "")),
+        "content": str(getattr(result, "content", "")),
+        "answer_r": str(getattr(result, "answer_r", "")),
+        "single_report_prompt": str(getattr(result, "single_report_prompt", "")),
+        "general_report_prompt": str(getattr(result, "general_report_prompt", "")),
     }
-    goal = objective or text
-    return {"goal": goal, "intent": intent}
-
-
-def planner_node(state: AgentState):
-    messages = state['messages']
-    last = messages[-1] if messages else None
-    text = getattr(last, "content", str(last)) if last else ""
-    goal = state.get("goal", text)
-    intent = state.get("intent", {})
-    sys = (
-        "你是一个规划助手。严格仅返回 JSON 对象，键为 steps，值为不超过 3 条的字符串数组。"
-        "基于用户目标与诉求分析（包含约束、偏好、假设）生成最小可执行计划。"
-        "不得向用户提问，不要输出除 JSON 外的任何内容。"
-    )
-    user = (
-        "生成计划所需信息如下：\n"
-        + "用户目标：" + goal + "\n"
-        + "诉求分析：" + json.dumps(intent, ensure_ascii=False)
-    )
-    structured = llm.with_structured_output(PlanOut)
-    result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
-    steps = [str(s) for s in getattr(result, "steps", [])]
-    return {"goal": goal, "plan": steps, "step_index": 0, "step_outputs": []}
-
-
-def agent_node(state: AgentState):
-    # messages = state['messages']
-    plan = state.get("plan", [])
-    idx = state.get("step_index", 0)
-    prev = state.get("step_outputs", [])
-    goal = state.get("goal", "")
-    step = plan[idx] if idx < len(plan) else ""
-    sys = "你是一个执行代理。针对给定的单一步骤直接产出可用结果，必要时使用可用工具。不得向用户提问；信息不足时进行合理假设并继续执行。仅返回简洁可用的结果。"
-    user = "当前步骤：" + step + "\n已完成结果：" + "; ".join(prev) + "\n用户目标：" + goal
-    response = llm_with_tools.invoke(
-        [SystemMessage(content=sys), HumanMessage(content=user)])
-    return {"messages": [response]}
-
-
-# --- 节点 2: Tools (执行) ---
-# LangGraph 自带了一个 ToolNode，它会自动解析 LLM 的 tool_calls 并运行对应函数
-tool_node = ToolNode(tools)
-
-
-def post_exec_node(state: AgentState):
-    messages = state['messages']
-    last = messages[-1]
-    content = getattr(last, "content", str(last))
-    outputs = state.get("step_outputs", [])
-    idx = state.get("step_index", 0)
-    return {"step_outputs": outputs + [content], "step_index": idx + 1}
+    tasks = state.get("tasks", [])
+    return {"tasks": tasks + [item], "current_index": idx + 1}
