@@ -11,10 +11,14 @@ class TaskItem(TypedDict):
     general_report_prompt: str
 
 
+class OutlineItem(TypedDict):
+    title: str
+    requirement: str
+
+
 class AgentState(TypedDict):
     user_request: str
     knowledge: str
-    outline: List[str]
+    outline: List[OutlineItem]
     current_index: int
-    requirement_desc: str
     tasks: List[TaskItem]
