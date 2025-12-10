@@ -39,10 +39,10 @@ def plan_node(state: AgentState):
     课程标题：{course_title}
     课程描述：{course_desc}
     用户需求：{user_request or "无"}
+    生成的任务数量：{expect_gen_task_num if expect_gen_task_num is not None and expect_gen_task_num > 0 else "最多生成大于3小于6的任务"}
     知识库：{knowledge}
     
     请根据以上信息规划教学大纲。
-    生成的任务数量：{expect_gen_task_num if expect_gen_task_num is not None and expect_gen_task_num > 0 else "最多生成大于3小于6的任务"}
     """
 
     print('plan_node_user_prompt:', user)
