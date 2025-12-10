@@ -46,6 +46,4 @@ workflow.add_edge("general_report_prompt_gen_node", "field_summary_node")
 
 workflow.add_conditional_edges("field_summary_node", should_loop)
 
-app = workflow.compile(config={
-        "recursion_limit": 60  # 自己设
-})
+app = workflow.compile()
