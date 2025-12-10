@@ -3,7 +3,7 @@ import os
 import sys
 from utils import load_env
 import json
-
+from pathlib import Path
 
 def require_env(keys):
     missing = [k for k in keys if not os.getenv(k)]
@@ -21,12 +21,15 @@ def run():
 
     course_title = "2.1 探秘生成式人工智能"
     course_desc = "生成式人工智能的应用，生成式人工智能的发展历程，主流模型的区别"
+    knowledge_path = os.path.join(os.getcwd(), "knowledge.txt")
+    with open(knowledge_path, "r", encoding="utf-8") as f:
+        knowledge_text = f.read()
 
     inputs = {
         "course_title": course_title,
         "course_desc": course_desc,
         "user_request": "",
-        "knowledge": "这里是知识库内容...",
+        "knowledge": knowledge_text,
         "expect_gen_task_num": 4,
     }
     if stream:
@@ -48,7 +51,7 @@ def run():
 
 
 def main():
-    load_env(os.path.join(os.getcwd(), ".env"))
+    load_env(os.path.join(Path(__file__).resolve().parent.parent, ".env"))
     require_env(["LLM_MODEL", "LLM_BASE_URL", "LLM_API_KEY"])
     run()
 

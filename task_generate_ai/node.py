@@ -42,7 +42,7 @@ def plan_node(state: AgentState):
     知识库：{knowledge}
     
     请根据以上信息规划教学大纲。
-    期望生成的任务数量：{expect_gen_task_num if expect_gen_task_num > 0 else "你自己决定"}
+    生成的任务数量：{expect_gen_task_num if expect_gen_task_num > 0 else "最多生成大于3小于6的任务"}
     """
     structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
