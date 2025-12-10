@@ -30,10 +30,12 @@ def run():
     }
     if stream:
         print('stream模式')
-        for event in app.stream(inputs, stream_mode="updates"):
-            # print(event)
-            print(json.dumps(event, ensure_ascii=False, indent=2))
-            print('--------')
+        output_path = os.path.join(os.getcwd(), "stream_output.txt")
+        with open(output_path, "w", encoding="utf-8") as f:
+            for event in app.stream(inputs, stream_mode="updates"):
+                s = json.dumps(event, ensure_ascii=False, indent=2)
+                f.write(s + "\n")
+                print('--------')
     elif graph:
         print(app.get_graph().print_ascii())
     else:
