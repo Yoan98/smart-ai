@@ -45,7 +45,7 @@ def plan_node(state: AgentState):
     请根据以上信息规划教学大纲。
     """
 
-    print('plan_node_user_prompt:', user)
+    # print('plan_node_user_prompt:', user)
     structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])
     items = getattr(result, "outline", [])

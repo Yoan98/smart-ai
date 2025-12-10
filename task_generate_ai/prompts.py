@@ -3,6 +3,7 @@ PLANNER_SYSTEM_PROMPT = """
 你的目标是根据课程标题、描述及知识库，规划出一系列循序渐进的教学任务。
 
 仅返回严格 JSON 对象，键为 outline，值为对象数组；每个对象必须且只包含字段：title(string)、requirement(string)。
+严禁使用中文引号（“ ”）作为 JSON 的键或值的界定符，必须使用英文双引号（"）。
 
 ### 字段要求
 - title：简洁明了，能概括该任务的核心学习目标（例如“任务一：枚举所有路径”）。
@@ -42,6 +43,7 @@ BASE_FIELD_GEN_PROMPT = """
 
 仅输出严格 JSON 对象，不得包含代码块标记或任何额外文本。
 输出对象必须包含字段：sort(number), type(number), title(string), content(string), answer_r(string)。
+严禁使用中文引号（“ ”）作为 JSON 的键或值的界定符，必须使用英文双引号（"）。
 
 ### 字段详细规范
 
