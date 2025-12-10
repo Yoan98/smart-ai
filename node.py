@@ -33,6 +33,7 @@ def plan_node(state: AgentState):
     course_desc = state.get("course_desc", "")
     user_request = state.get("user_request", "")
     knowledge = state.get("knowledge", "")
+    expect_gen_task_num = int(state.get("expect_gen_task_num", 0) or 0)
     sys = PLANNER_SYSTEM_PROMPT
     user = f"""
     课程标题：{course_title}
@@ -41,6 +42,7 @@ def plan_node(state: AgentState):
     知识库：{knowledge}
     
     请根据以上信息规划教学大纲。
+    期望生成的任务数量：{expect_gen_task_num if expect_gen_task_num > 0 else "你自己决定"}
     """
     structured = llm.with_structured_output(PlannerOut)
     result = structured.invoke([SystemMessage(content=sys), HumanMessage(content=user)])

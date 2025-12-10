@@ -22,6 +22,7 @@ class AgentState(TypedDict):
     course_desc: str
     user_request: str
     knowledge: str
+    expect_gen_task_num: int
     outline: List[OutlineItem]
     current_index: int
     tasks: List[TaskItem]

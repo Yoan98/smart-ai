@@ -27,6 +27,7 @@ def run():
         "course_desc": course_desc,
         "user_request": "",
         "knowledge": "这里是知识库内容...",
+        "expect_gen_task_num": 4,
     }
     if stream:
         print('stream模式')
