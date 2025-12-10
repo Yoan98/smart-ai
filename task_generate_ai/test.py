@@ -30,7 +30,7 @@ def run():
         "course_desc": course_desc,
         "user_request": "",
         "knowledge": knowledge_text,
-        "expect_gen_task_num": 4,
+        # "expect_gen_task_num": 4,
     }
     if stream:
         print('stream模式')
