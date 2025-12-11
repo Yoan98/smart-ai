@@ -50,12 +50,11 @@ BASE_FIELD_GEN_PROMPT = """
 1. sort (number): 任务序号，从1开始。
 2. type (number): 1=选择题，2=填空题，3=问答题。
 3. title (string): 任务标题。
-4. content (string): 任务正文，Markdown格式。必须包含题干、说明及 `answer_input` 占位符。
+4. content (string): 任务正文，Markdown格式。必须包含题干、说明及 `$$textarea$$` 或者 `$$input$$` 占位符，它们代表着学生需要输入答案的地方，会被前端替换为具体的输入框或文本区域。
    示例：
-   ```answer_input
-   {"type":2,"index":0}
-   ```
-   (type: 1=textarea, 2=input; index: 从0递增)
+   $$textarea$$
+   或
+   $$input$$
 
 5. answer_r (string): 答案评价标准。
    内容必须包含以下四个章节：
@@ -72,7 +71,7 @@ BASE_FIELD_GEN_PROMPT = """
   "sort": 1,
   "type": 2,
   "title": "任务一：枚举所有路径",
-  "content": "用枚举法列出全部路径\n\n```answer_input\n{\"type\":2,\"index\":0}\n```",
+  "content": "用枚举法列出全部路径\n\n$$textarea$$",
   "answer_r": "一、前提与背景说明\n1路径任务：学生需从起点A出发，寻找到达终点K的所有有效路径。\n...\n三、详细评价场景与反馈指南\n场景1：完全正确\n反馈语气：极度兴奋，高度赞扬。\n..."
 }
 """
